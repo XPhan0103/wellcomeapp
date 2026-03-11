@@ -99,6 +99,10 @@ public class User {
         this.roles = roles;
     }
 
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "parent_student", joinColumns = @JoinColumn(name = "parent_id"), inverseJoinColumns = @JoinColumn(name = "student_id"))
+    private Set<Student> students = new HashSet<>();
+
     public void addRole(Role role) {
         this.roles.add(role);
     }
@@ -106,4 +110,8 @@ public class User {
     public void removeRole(Role role) {
         this.roles.remove(role);
     }
+
+    public Set<Student> getStudents() { return students; }
+    public void setStudents(Set<Student> students) { this.students = students; }
+    public void addStudent(Student student) { this.students.add(student); }
 }

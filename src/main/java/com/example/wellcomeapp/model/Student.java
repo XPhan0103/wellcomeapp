@@ -9,30 +9,26 @@ public class Student {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
-    private String email;
+    @Column(name = "full_name", nullable = false)
+    private String fullName;
 
-    public Long getId() {
-        return id;
-    }
+    @Column(name = "student_code", unique = true)
+    private String studentCode;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    @Column(name = "class_name")
+    private String className;
 
-    public String getName() {
-        return name;
-    }
+    @Column(name = "school_year")
+    private String schoolYear;
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
+    public String getStudentCode() { return studentCode; }
+    public void setStudentCode(String studentCode) { this.studentCode = studentCode; }
+    public String getClassName() { return className; }
+    public void setClassName(String className) { this.className = className; }
+    public String getSchoolYear() { return schoolYear; }
+    public void setSchoolYear(String schoolYear) { this.schoolYear = schoolYear; }
 }

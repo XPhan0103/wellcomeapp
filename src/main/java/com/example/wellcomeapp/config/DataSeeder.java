@@ -31,6 +31,10 @@ public class DataSeeder {
                 Role r = new Role(); r.setName("ROLE_PARENT"); r.setDescription("Phụ huynh học sinh");
                 return roleRepository.save(r);
             });
+            Role studentRole = roleRepository.findByName("ROLE_STUDENT").orElseGet(() -> {
+                Role r = new Role(); r.setName("ROLE_STUDENT"); r.setDescription("Học sinh");
+                return roleRepository.save(r);
+            });
 
             // ── STUDENT ────────────────────────────────────────────────────────
             Student studentA;
@@ -68,6 +72,15 @@ public class DataSeeder {
                 userRepository.save(parent);
             }
 
+            // ── STUDENT USER (students can also login) ─────────────────────────────
+            if (userRepository.findByPhoneNumber("0912345678").isEmpty()) {
+                final Student fStudentRef = studentA;
+                User studentUser = new User("0912345678", "123456", "Nguyễn Văn A (Học sinh)");
+                studentUser.addRole(studentRole);
+                studentUser.addStudent(fStudentRef);
+                userRepository.save(studentUser);
+            }
+
             // ── SUBJECTS + GRADES + SCHEDULES + ASSIGNMENTS + NOTIFICATIONS ───
             if (subjectRepository.count() == 0) {
                 Subject math = subjectRepository.save(newSubject("Toán"));
@@ -76,14 +89,22 @@ public class DataSeeder {
                 Subject phys = subjectRepository.save(newSubject("Vật Lý"));
                 Subject chem = subjectRepository.save(newSubject("Hóa Học"));
 
-                // Grades
-                saveGrade(gradeRepository, studentA, math,  8.5, "15 phút");
-                saveGrade(gradeRepository, studentA, eng,   9.0, "Miệng");
-                saveGrade(gradeRepository, studentA, lit,   7.5, "1 tiết");
-                saveGrade(gradeRepository, studentA, phys,  8.0, "Giữa kỳ");
-                saveGrade(gradeRepository, studentA, chem,  7.0, "1 tiết");
-                saveGrade(gradeRepository, studentA, math,  7.5, "1 tiết");
-                saveGrade(gradeRepository, studentA, eng,   8.5, "Cuối kỳ");
+                // Grades – HK1 with semester + weight
+                saveGradeEx(gradeRepository, studentA, math,  8.5, "15 phút",  "HK1", 1);
+                saveGradeEx(gradeRepository, studentA, math,  9.0, "Giữa kỳ",  "HK1", 2);
+                saveGradeEx(gradeRepository, studentA, math,  8.0, "Cuối kỳ",   "HK1", 3);
+                saveGradeEx(gradeRepository, studentA, eng,   9.0, "Miệng",      "HK1", 1);
+                saveGradeEx(gradeRepository, studentA, eng,   8.5, "1 tiết",    "HK1", 2);
+                saveGradeEx(gradeRepository, studentA, eng,   9.5, "Cuối kỳ",   "HK1", 3);
+                saveGradeEx(gradeRepository, studentA, lit,   7.5, "1 tiết",    "HK1", 2);
+                saveGradeEx(gradeRepository, studentA, lit,   7.0, "Giữa kỳ",  "HK1", 2);
+                saveGradeEx(gradeRepository, studentA, lit,   8.0, "Cuối kỳ",   "HK1", 3);
+                saveGradeEx(gradeRepository, studentA, phys,  8.0, "15 phút",  "HK1", 1);
+                saveGradeEx(gradeRepository, studentA, phys,  7.5, "Giữa kỳ",  "HK1", 2);
+                saveGradeEx(gradeRepository, studentA, phys,  8.5, "Cuối kỳ",   "HK1", 3);
+                saveGradeEx(gradeRepository, studentA, chem,  7.0, "Miệng",      "HK1", 1);
+                saveGradeEx(gradeRepository, studentA, chem,  6.5, "1 tiết",    "HK1", 2);
+                saveGradeEx(gradeRepository, studentA, chem,  7.5, "Cuối kỳ",   "HK1", 3);
 
                 // Schedules (Mon–Fri = dayOfWeek 2–6)
                 for (int d = 2; d <= 6; d++) {
@@ -162,6 +183,14 @@ public class DataSeeder {
 
     private void saveGrade(GradeRepository repo, Student s, Subject subj, double score, String type) {
         Grade g = new Grade(); g.setStudent(s); g.setSubject(subj); g.setScore(score); g.setType(type);
+        repo.save(g);
+    }
+
+    private void saveGradeEx(GradeRepository repo, Student s, Subject subj, double score,
+                             String type, String semester, int weight) {
+        Grade g = new Grade();
+        g.setStudent(s); g.setSubject(subj); g.setScore(score);
+        g.setType(type); g.setSemester(semester); g.setWeight(weight);
         repo.save(g);
     }
 

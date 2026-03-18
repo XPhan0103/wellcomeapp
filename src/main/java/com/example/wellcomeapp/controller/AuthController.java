@@ -43,16 +43,27 @@ public class AuthController {
 
         if (userOptional.isPresent()) {
             User user = userOptional.get();
-            // Trong thực tế, dùng BCryptPasswordEncoder
             if (user.getPassword().equals(pwd) && user.getIsActive()) {
 
-                // Return success and user info
+                // Determine primary role
+                String primaryRole = user.getRoles().stream()
+                        .findFirst()
+                        .map(r -> r.getName())
+                        .orElse("ROLE_UNKNOWN");
+
+                // Linked student id (for ROLE_PARENT or ROLE_STUDENT)
+                Long studentId = user.getStudents().stream()
+                        .findFirst()
+                        .map(s -> s.getId())
+                        .orElse(null);
+
                 Map<String, Object> response = new HashMap<>();
-                response.put("message", "Đăng nhập thành công");
-                response.put("userId", user.getId());
-                response.put("fullName", user.getFullName());
-                response.put("roles", user.getRoles());
-                response.put("token", "fake-jwt-token-replace-later");
+                response.put("message",   "Đăng nhập thành công");
+                response.put("userId",    user.getId());
+                response.put("fullName",  user.getFullName());
+                response.put("role",      primaryRole);
+                response.put("studentId", studentId);
+                response.put("token",     "fake-jwt-token-replace-later");
 
                 return ResponseEntity.ok(response);
             }
@@ -60,6 +71,7 @@ public class AuthController {
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Tài khoản hoặc mật khẩu không chính xác");
     }
+
 
     @PostMapping("/forgot-password/request-otp")
     public ResponseEntity<?> requestOtp(@RequestBody OtpRequest request) {

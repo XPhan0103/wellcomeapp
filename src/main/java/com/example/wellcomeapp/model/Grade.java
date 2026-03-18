@@ -21,8 +21,17 @@ public class Grade {
     @Column(nullable = false)
     private Double score;
 
+    /** Loại điểm: Miệng | 15 phút | 1 tiết | Giữa kỳ | Cuối kỳ */
     @Column(nullable = false)
-    private String type; // e.g., '15 phút', 'Miệng', '1 tiết', 'Cuối kỳ'
+    private String type;
+
+    /** Học kỳ: HK1 | HK2 */
+    @Column(name = "semester")
+    private String semester = "HK1";
+
+    /** Hệ số điểm: 1 = thường xuyên, 2 = giữa kỳ, 3 = cuối kỳ */
+    @Column(name = "weight")
+    private Integer weight = 1;
 
     @Column(name = "created_at", updatable = false)
     @org.hibernate.annotations.CreationTimestamp
@@ -38,6 +47,11 @@ public class Grade {
     public void setScore(Double score) { this.score = score; }
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }
+    public String getSemester() { return semester; }
+    public void setSemester(String semester) { this.semester = semester; }
+    public Integer getWeight() { return weight; }
+    public void setWeight(Integer weight) { this.weight = weight; }
     public Timestamp getCreatedAt() { return createdAt; }
     public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
 }
+

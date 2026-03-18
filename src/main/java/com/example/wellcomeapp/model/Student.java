@@ -1,6 +1,7 @@
 package com.example.wellcomeapp.model;
 
 import jakarta.persistence.*;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "students")
@@ -21,6 +22,12 @@ public class Student {
     @Column(name = "school_year")
     private String schoolYear;
 
+    @Column(name = "date_of_birth")
+    private LocalDate dateOfBirth;
+
+    @Column(name = "address")
+    private String address;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getFullName() { return fullName; }
@@ -31,4 +38,9 @@ public class Student {
     public void setClassName(String className) { this.className = className; }
     public String getSchoolYear() { return schoolYear; }
     public void setSchoolYear(String schoolYear) { this.schoolYear = schoolYear; }
+    public LocalDate getDateOfBirth() { return dateOfBirth; }
+    public void setDateOfBirth(LocalDate dateOfBirth) { this.dateOfBirth = dateOfBirth; }
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
 }
+

@@ -6,6 +6,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Optional;
@@ -14,38 +16,44 @@ import java.util.Optional;
 public class DataSeeder {
 
     @Bean
-    CommandLineRunner initDatabase(UserRepository userRepository, RoleRepository roleRepository,
-                                   StudentRepository studentRepository, SubjectRepository subjectRepository,
-                                   GradeRepository gradeRepository, ScheduleRepository scheduleRepository,
-                                   AssignmentRepository assignmentRepository, NotificationRepository notificationRepository) {
+    CommandLineRunner initDatabase(
+            UserRepository userRepository, RoleRepository roleRepository,
+            StudentRepository studentRepository, SubjectRepository subjectRepository,
+            GradeRepository gradeRepository, ScheduleRepository scheduleRepository,
+            AssignmentRepository assignmentRepository, NotificationRepository notificationRepository,
+            AttendanceRepository attendanceRepository,
+            TuitionPaymentRepository tuitionPaymentRepository,
+            LeaveRequestRepository leaveRequestRepository) {
+
         return args -> {
-            // Create Role if not exists
+            // ── ROLES ──────────────────────────────────────────────────────────
             Role parentRole = roleRepository.findByName("ROLE_PARENT").orElseGet(() -> {
-                Role r = new Role();
-                r.setName("ROLE_PARENT");
-                r.setDescription("Phụ huynh học sinh");
+                Role r = new Role(); r.setName("ROLE_PARENT"); r.setDescription("Phụ huynh học sinh");
                 return roleRepository.save(r);
             });
 
-            // Create Student
-            Student studentA = new Student();
-            studentA.setFullName("Nguyễn Văn A");
-            studentA.setStudentCode("HS2025001");
-            studentA.setClassName("10A1");
-            studentA.setSchoolYear("2025-2026");
-            
-            // Check if student exists
+            // ── STUDENT ────────────────────────────────────────────────────────
+            Student studentA;
             if (studentRepository.count() == 0) {
+                studentA = new Student();
+                studentA.setFullName("Nguyễn Văn A");
+                studentA.setStudentCode("HS2025001");
+                studentA.setClassName("10A1");
+                studentA.setSchoolYear("2025-2026");
+                studentA.setDateOfBirth(LocalDate.of(2009, 3, 15));
+                studentA.setAddress("123 Nguyễn Trãi, Quận 1, TP.HCM");
                 studentA = studentRepository.save(studentA);
             } else {
                 studentA = studentRepository.findAll().get(0);
-                studentA.setFullName("Nguyễn Văn A");
-                studentA.setClassName("10A1");
-                studentA.setSchoolYear("2025-2026");
-                studentA = studentRepository.save(studentA);
+                // Patch missing fields
+                if (studentA.getDateOfBirth() == null) {
+                    studentA.setDateOfBirth(LocalDate.of(2009, 3, 15));
+                    studentA.setAddress("123 Nguyễn Trãi, Quận 1, TP.HCM");
+                    studentA = studentRepository.save(studentA);
+                }
             }
 
-            // Create User (Parent)
+            // ── PARENT USER ────────────────────────────────────────────────────
             Optional<User> userOpt = userRepository.findByPhoneNumber("0987654321");
             User parent;
             if (userOpt.isEmpty()) {
@@ -60,40 +68,147 @@ public class DataSeeder {
                 userRepository.save(parent);
             }
 
-            // Create Subjects and Mocks if subjects are empty
+            // ── SUBJECTS + GRADES + SCHEDULES + ASSIGNMENTS + NOTIFICATIONS ───
             if (subjectRepository.count() == 0) {
-                Subject math = new Subject(); math.setName("Toán");
-                Subject english = new Subject(); english.setName("Tiếng Anh");
-                Subject lit = new Subject(); lit.setName("Ngữ Văn");
-                
-                math = subjectRepository.save(math);
-                english = subjectRepository.save(english);
-                lit = subjectRepository.save(lit);
+                Subject math = subjectRepository.save(newSubject("Toán"));
+                Subject eng  = subjectRepository.save(newSubject("Tiếng Anh"));
+                Subject lit  = subjectRepository.save(newSubject("Ngữ Văn"));
+                Subject phys = subjectRepository.save(newSubject("Vật Lý"));
+                Subject chem = subjectRepository.save(newSubject("Hóa Học"));
 
-                // Create Grades
-                Grade g1 = new Grade(); g1.setStudent(studentA); g1.setSubject(math); g1.setScore(8.5); g1.setType("15 phút"); gradeRepository.save(g1);
-                Grade g2 = new Grade(); g2.setStudent(studentA); g2.setSubject(english); g2.setScore(9.0); g2.setType("Miệng"); gradeRepository.save(g2);
-                Grade g3 = new Grade(); g3.setStudent(studentA); g3.setSubject(lit); g3.setScore(7.5); g3.setType("1 tiết"); gradeRepository.save(g3);
+                // Grades
+                saveGrade(gradeRepository, studentA, math,  8.5, "15 phút");
+                saveGrade(gradeRepository, studentA, eng,   9.0, "Miệng");
+                saveGrade(gradeRepository, studentA, lit,   7.5, "1 tiết");
+                saveGrade(gradeRepository, studentA, phys,  8.0, "Giữa kỳ");
+                saveGrade(gradeRepository, studentA, chem,  7.0, "1 tiết");
+                saveGrade(gradeRepository, studentA, math,  7.5, "1 tiết");
+                saveGrade(gradeRepository, studentA, eng,   8.5, "Cuối kỳ");
 
-                // Create Schedules (Schedule for Mon-Fri)
-                for (int i = 2; i <= 6; i++) {
-                    Schedule s1 = new Schedule(); s1.setClassName("10A1"); s1.setSubject(math); s1.setRoom("Phòng A203"); s1.setStartTime(LocalTime.of(7, 30)); s1.setEndTime(LocalTime.of(9, 0)); s1.setDayOfWeek(i); scheduleRepository.save(s1);
-                    Schedule s2 = new Schedule(); s2.setClassName("10A1"); s2.setSubject(lit); s2.setRoom("Phòng B105"); s2.setStartTime(LocalTime.of(9, 15)); s2.setEndTime(LocalTime.of(10, 45)); s2.setDayOfWeek(i); scheduleRepository.save(s2);
-                    Schedule s3 = new Schedule(); s3.setClassName("10A1"); s3.setSubject(english); s3.setRoom("Phòng C301"); s3.setStartTime(LocalTime.of(13, 30)); s3.setEndTime(LocalTime.of(15, 0)); s3.setDayOfWeek(i); scheduleRepository.save(s3);
+                // Schedules (Mon–Fri = dayOfWeek 2–6)
+                for (int d = 2; d <= 6; d++) {
+                    saveSchedule(scheduleRepository, "10A1", math,  "A203", LocalTime.of(7,30),  LocalTime.of(9,0),  d);
+                    saveSchedule(scheduleRepository, "10A1", lit,   "B105", LocalTime.of(9,15),  LocalTime.of(10,45), d);
+                    saveSchedule(scheduleRepository, "10A1", eng,   "C301", LocalTime.of(13,30), LocalTime.of(15,0),  d);
+                    saveSchedule(scheduleRepository, "10A1", phys,  "D202", LocalTime.of(15,15), LocalTime.of(16,45), d);
                 }
 
-                // Create Assignments
-                Assignment a1 = new Assignment(); a1.setTitle("BTVN Toán - Chương 2"); a1.setDescription("Làm bài tập trang 32"); a1.setSubject(math); a1.setClassName("10A1"); a1.setDueDate(LocalDateTime.now().withHour(20).withMinute(0)); assignmentRepository.save(a1);
-                Assignment a2 = new Assignment(); a2.setTitle("Đọc hiểu Văn"); a2.setDescription("Soạn bài"); a2.setSubject(lit); a2.setClassName("10A1"); a2.setDueDate(LocalDateTime.now().plusDays(2)); assignmentRepository.save(a2);
-                Assignment a3 = new Assignment(); a3.setTitle("Quiz Anh Unit 3"); a3.setDescription("Làm quiz online"); a3.setSubject(english); a3.setClassName("10A1"); a3.setDueDate(LocalDateTime.now().plusDays(4)); assignmentRepository.save(a3);
+                // Assignments
+                saveAssignment(assignmentRepository, "BTVN Toán - Chương 2",  "Làm bài tập trang 32",    math, "10A1", LocalDateTime.now().withHour(20).withMinute(0));
+                saveAssignment(assignmentRepository, "Đọc hiểu Văn",           "Soạn bài Chí Phèo",       lit,  "10A1", LocalDateTime.now().plusDays(2));
+                saveAssignment(assignmentRepository, "Quiz Anh Unit 3",         "Làm quiz online Teams",   eng,  "10A1", LocalDateTime.now().plusDays(4));
+                saveAssignment(assignmentRepository, "Bài tập Vật Lý ch.5",    "Giải bài 5.1–5.10",       phys, "10A1", LocalDateTime.now().plusDays(1));
 
-                // Create Notifications
-                Notification n1 = new Notification(); n1.setTitle("Thông báo"); n1.setContent("Lịch kiểm tra giữa kỳ sẽ cập nhật vào tuần sau."); notificationRepository.save(n1);
-                Notification n2 = new Notification(); n2.setTitle("Nhắc nhở"); n2.setContent("Bạn có 1 bài tập sắp đến hạn."); notificationRepository.save(n2);
-                Notification n3 = new Notification(); n3.setTitle("Nhà trường"); n3.setContent("Nhớ mang thẻ học sinh khi vào cổng."); notificationRepository.save(n3);
+                // Notifications
+                saveNotification(notificationRepository, "Thông báo", "Lịch kiểm tra giữa kỳ sẽ cập nhật vào tuần sau.");
+                saveNotification(notificationRepository, "Nhắc nhở",  "Bạn có 1 bài tập sắp đến hạn.");
+                saveNotification(notificationRepository, "Nhà trường","Nhớ mang thẻ học sinh khi vào cổng.");
+                saveNotification(notificationRepository, "Học phí",   "Học phí tháng 3 sắp đến hạn – vui lòng đóng trước 25/03.");
+                saveNotification(notificationRepository, "Sự kiện",   "Ngày hội thể thao trường ngày 28/03. Học sinh cần đăng ký trước.");
 
-                System.out.println("====== DỮ LIỆU MOCK ĐÃ ĐƯỢC TẠO THÀNH CÔNG ======");
+                System.out.println("====== MOCK DATA (Phase 1) ĐÃ ĐƯỢC TẠO ======");
+            }
+
+            // ── ATTENDANCE (chuyên cần) ────────────────────────────────────────
+            if (attendanceRepository.count() == 0) {
+                LocalDate today = LocalDate.now();
+                // Seed ~4 weeks of attendance
+                for (int i = 27; i >= 0; i--) {
+                    LocalDate d = today.minusDays(i);
+                    int dow = d.getDayOfWeek().getValue(); // 1=Mon … 7=Sun
+                    if (dow >= 6) continue; // skip weekend
+                    Attendance.Status status = Attendance.Status.PRESENT;
+                    String note = "";
+                    if (i == 10) { status = Attendance.Status.ABSENT;  note = "Ốm sốt"; }
+                    if (i == 17) { status = Attendance.Status.LATE;    note = "Đến muộn 15 phút"; }
+                    if (i == 22) { status = Attendance.Status.ABSENT;  note = "Xin phép có việc gia đình"; }
+                    Attendance att = new Attendance();
+                    att.setStudent(studentA);
+                    att.setAttendanceDate(d);
+                    att.setStatus(status);
+                    att.setNote(note);
+                    attendanceRepository.save(att);
+                }
+                System.out.println("====== MOCK ATTENDANCE SEEDED ======");
+            }
+
+            // ── TUITION PAYMENTS ────────────────────────────────────────────────
+            if (tuitionPaymentRepository.count() == 0) {
+                final Student fStudentA = studentA;
+                saveTuition(tuitionPaymentRepository, fStudentA, "Học phí tháng 1/2026",     3_500_000, TuitionPayment.Status.PAID,   LocalDate.of(2026, 1, 20), LocalDate.of(2026, 1, 18));
+                saveTuition(tuitionPaymentRepository, fStudentA, "Học phí tháng 2/2026",     3_500_000, TuitionPayment.Status.PAID,   LocalDate.of(2026, 2, 20), LocalDate.of(2026, 2, 15));
+                saveTuition(tuitionPaymentRepository, fStudentA, "Học phí tháng 3/2026",     3_500_000, TuitionPayment.Status.UNPAID, LocalDate.of(2026, 3, 25), null);
+                saveTuition(tuitionPaymentRepository, fStudentA, "Phí hoạt động ngoại khóa",   500_000, TuitionPayment.Status.UNPAID, LocalDate.of(2026, 3, 30), null);
+                saveTuition(tuitionPaymentRepository, fStudentA, "Bảo hiểm y tế học sinh",     800_000, TuitionPayment.Status.PAID,   LocalDate.of(2026, 1, 15), LocalDate.of(2026, 1, 10));
+                System.out.println("====== MOCK TUITION SEEDED ======");
+            }
+
+            // ── LEAVE REQUESTS ─────────────────────────────────────────────────
+            if (leaveRequestRepository.count() == 0) {
+                final Student fStudentA = studentA;
+                saveLeaveReq(leaveRequestRepository, fStudentA, "Ốm sốt, cần nghỉ để điều trị", LocalDate.now().minusDays(10), LeaveRequest.Status.APPROVED, LocalDateTime.now().minusDays(11));
+                saveLeaveReq(leaveRequestRepository, fStudentA, "Có việc gia đình đột xuất",    LocalDate.now().minusDays(22), LeaveRequest.Status.APPROVED, LocalDateTime.now().minusDays(23));
+                saveLeaveReq(leaveRequestRepository, fStudentA, "Khám bệnh định kỳ",            LocalDate.now().plusDays(5),   LeaveRequest.Status.PENDING,  LocalDateTime.now().minusDays(1));
+                System.out.println("====== MOCK LEAVE REQUESTS SEEDED ======");
             }
         };
+    }
+
+    // ── Helper methods ──────────────────────────────────────────────────────────
+
+    private Subject newSubject(String name) {
+        Subject s = new Subject(); s.setName(name); return s;
+    }
+
+    private void saveGrade(GradeRepository repo, Student s, Subject subj, double score, String type) {
+        Grade g = new Grade(); g.setStudent(s); g.setSubject(subj); g.setScore(score); g.setType(type);
+        repo.save(g);
+    }
+
+    private void saveSchedule(ScheduleRepository repo, String cls, Subject subj, String room,
+                              LocalTime start, LocalTime end, int dow) {
+        Schedule s = new Schedule();
+        s.setClassName(cls); s.setSubject(subj); s.setRoom("Phòng " + room);
+        s.setStartTime(start); s.setEndTime(end); s.setDayOfWeek(dow);
+        repo.save(s);
+    }
+
+    private void saveAssignment(AssignmentRepository repo, String title, String desc,
+                                Subject subj, String cls, LocalDateTime due) {
+        Assignment a = new Assignment();
+        a.setTitle(title); a.setDescription(desc); a.setSubject(subj);
+        a.setClassName(cls); a.setDueDate(due);
+        repo.save(a);
+    }
+
+    private void saveNotification(NotificationRepository repo, String title, String content) {
+        Notification n = new Notification(); n.setTitle(title); n.setContent(content);
+        repo.save(n);
+    }
+
+    private void saveTuition(TuitionPaymentRepository repo, Student student,
+                             String desc, long amount, TuitionPayment.Status status,
+                             LocalDate dueDate, LocalDate paidAt) {
+        TuitionPayment t = new TuitionPayment();
+        t.setStudent(student);
+        t.setDescription(desc);
+        t.setAmount(BigDecimal.valueOf(amount));
+        t.setStatus(status);
+        t.setDueDate(dueDate);
+        t.setPaidAt(paidAt);
+        repo.save(t);
+    }
+
+    private void saveLeaveReq(LeaveRequestRepository repo, Student student,
+                              String reason, LocalDate leaveDate,
+                              LeaveRequest.Status status, LocalDateTime createdAt) {
+        LeaveRequest r = new LeaveRequest();
+        r.setStudent(student);
+        r.setReason(reason);
+        r.setLeaveDate(leaveDate);
+        r.setStatus(status);
+        r.setParentName("Phụ huynh Nguyễn Văn A");
+        r.setCreatedAt(createdAt);
+        repo.save(r);
     }
 }

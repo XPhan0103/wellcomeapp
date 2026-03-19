@@ -120,14 +120,42 @@ public class DataSeeder {
                 saveAssignment(assignmentRepository, "Quiz Anh Unit 3",         "Làm quiz online Teams",   eng,  "10A1", LocalDateTime.now().plusDays(4));
                 saveAssignment(assignmentRepository, "Bài tập Vật Lý ch.5",    "Giải bài 5.1–5.10",       phys, "10A1", LocalDateTime.now().plusDays(1));
 
-                // Notifications
-                saveNotification(notificationRepository, "Thông báo", "Lịch kiểm tra giữa kỳ sẽ cập nhật vào tuần sau.");
-                saveNotification(notificationRepository, "Nhắc nhở",  "Bạn có 1 bài tập sắp đến hạn.");
-                saveNotification(notificationRepository, "Nhà trường","Nhớ mang thẻ học sinh khi vào cổng.");
-                saveNotification(notificationRepository, "Học phí",   "Học phí tháng 3 sắp đến hạn – vui lòng đóng trước 25/03.");
-                saveNotification(notificationRepository, "Sự kiện",   "Ngày hội thể thao trường ngày 28/03. Học sinh cần đăng ký trước.");
-
                 System.out.println("====== MOCK DATA (Phase 1) ĐÃ ĐƯỢC TẠO ======");
+            }
+
+            // ── NOTIFICATIONS (seeded independently so they survive Phase 1 skip) ────
+            if (notificationRepository.count() == 0) {
+                saveNotifEx(notificationRepository, "Lịch kiểm tra giữa kỳ",
+                        "Lịch kiểm tra giữa kỳ sẽ được cập nhật vào tuần sau. Các em chú ý theo dõi.",
+                        "HỌC_TẬP", false);
+                saveNotifEx(notificationRepository, "Bài tập sắp đến hạn",
+                        "Bạn có 1 bài tập Toán sắp đến hạn nộp – vui lòng nộp đúng hạn hôm nay.",
+                        "HỌC_TẬP", false);
+                saveNotifEx(notificationRepository, "Nhắc mang thẻ học sinh",
+                        "Nhớ mang thẻ học sinh khi vào cổng trường. Bảo vệ sẽ kiểm tra từ ngày 21/03.",
+                        "SỰ_KIỆN", true);
+                saveNotifEx(notificationRepository, "Học phí tháng 3 sắp đến hạn",
+                        "Học phí tháng 3 sắp đến hạn – vui lòng đóng trước ngày 25/03/2026.",
+                        "HỌC_PHÍ", false);
+                saveNotifEx(notificationRepository, "Ngày hội thể thao",
+                        "Ngày hội thể thao trường diễn ra ngày 28/03. Học sinh cần đăng ký tham gia trước ngày 22/03.",
+                        "SỰ_KIỆN", false);
+                saveNotifEx(notificationRepository, "Nghỉ lễ 30/4 – 1/5",
+                        "Học sinh được nghỉ từ 28/4 đến 2/5. Trường sẽ điều chỉnh lịch học bù vào tuần sau.",
+                        "SỰ_KIỆN", true);
+                saveNotifEx(notificationRepository, "Bảo hiểm y tế học sinh",
+                        "Vui lòng nộp phí bảo hiểm y tế học sinh trước ngày 10/04/2026.",
+                        "HỌC_PHÍ", false);
+                saveNotifEx(notificationRepository, "Kỳ thi thử THPT",
+                        "Lịch thi thử THPT Quốc gia sẽ diễn ra từ 15-17/05. Học sinh chú ý ôn tập.",
+                        "HỌC_TẬP", false);
+                saveNotifEx(notificationRepository, "Cảnh báo thời tiết xấu",
+                        "Dự báo mưa lớn ngày mai. Phụ huynh chú ý đưa đón học sinh an toàn.",
+                        "SỰ_KIỆN", false);
+                saveNotifEx(notificationRepository, "Học sinh xuất sắc tháng 2",
+                        "Bạn Nguyễn Văn A được bình chọn là Học sinh xuất sắc tháng 2/2026. Chúc mừng!",
+                        "SỰ_KIỆN", true);
+                System.out.println("====== MOCK NOTIFICATIONS (Phase 3) SEEDED ======");
             }
 
             // ── ATTENDANCE (chuyên cần) ────────────────────────────────────────
@@ -212,6 +240,16 @@ public class DataSeeder {
 
     private void saveNotification(NotificationRepository repo, String title, String content) {
         Notification n = new Notification(); n.setTitle(title); n.setContent(content);
+        repo.save(n);
+    }
+
+    private void saveNotifEx(NotificationRepository repo, String title, String content,
+                             String category, boolean isRead) {
+        Notification n = new Notification();
+        n.setTitle(title);
+        n.setContent(content);
+        n.setCategory(category);
+        n.setIsRead(isRead);
         repo.save(n);
     }
 

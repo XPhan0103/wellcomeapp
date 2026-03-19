@@ -131,4 +131,39 @@ public class AuthController {
         }
         return ResponseEntity.badRequest().body("Lỗi hệ thống khi đổi mật khẩu");
     }
+
+    /**
+     * POST /api/auth/change-password
+     * Body: { "userId": 1, "oldPassword": "...", "newPassword": "..." }
+     * Verifies old password against DB before saving new password.
+     */
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody Map<String, Object> body) {
+        Object userIdObj   = body.get("userId");
+        String oldPassword = (String) body.get("oldPassword");
+        String newPassword = (String) body.get("newPassword");
+
+        if (userIdObj == null || oldPassword == null || newPassword == null) {
+            return ResponseEntity.badRequest().body("Thiếu thông tin yêu cầu");
+        }
+        if (newPassword.length() < 6) {
+            return ResponseEntity.badRequest().body("Mật khẩu mới phải có ít nhất 6 ký tự");
+        }
+
+        long userId = ((Number) userIdObj).longValue();
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy người dùng");
+        }
+
+        User user = userOpt.get();
+        if (!user.getPassword().equals(oldPassword)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Mật khẩu hiện tại không chính xác");
+        }
+
+        user.setPassword(newPassword);
+        userRepository.save(user);
+        return ResponseEntity.ok(Collections.singletonMap("message", "Đổi mật khẩu thành công"));
+    }
 }
+

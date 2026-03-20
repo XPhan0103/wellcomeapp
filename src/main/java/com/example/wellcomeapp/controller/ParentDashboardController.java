@@ -49,8 +49,8 @@ public class ParentDashboardController {
         ));
 
         // 2. Today's Schedules
-        // Note: For mocking purposes, we fetch Wednesday (4) schedules. In reality, it would be LocalDate.now().getDayOfWeek()
-        List<Schedule> schedules = scheduleRepository.findByClassNameAndDayOfWeekOrderByStartTimeAsc(student.getClassName(), 4);
+        int currentDow = java.time.LocalDate.now().getDayOfWeek().getValue() + 1; // Mon=2, ... Sun=8
+        List<Schedule> schedules = scheduleRepository.findByClassNameAndDayOfWeekOrderByStartTimeAsc(student.getClassName(), currentDow);
         List<DashboardResponse.ScheduleDTO> scheduleDTOs = schedules.stream()
                 .map(s -> new DashboardResponse.ScheduleDTO(
                         s.getStartTime() != null ? s.getStartTime().toString() : "",

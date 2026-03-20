@@ -106,14 +106,6 @@ public class DataSeeder {
                 saveGradeEx(gradeRepository, studentA, chem,  6.5, "1 tiết",    "HK1", 2);
                 saveGradeEx(gradeRepository, studentA, chem,  7.5, "Cuối kỳ",   "HK1", 3);
 
-                // Schedules (Mon–Fri = dayOfWeek 2–6)
-                for (int d = 2; d <= 6; d++) {
-                    saveSchedule(scheduleRepository, "10A1", math,  "A203", LocalTime.of(7,30),  LocalTime.of(9,0),  d);
-                    saveSchedule(scheduleRepository, "10A1", lit,   "B105", LocalTime.of(9,15),  LocalTime.of(10,45), d);
-                    saveSchedule(scheduleRepository, "10A1", eng,   "C301", LocalTime.of(13,30), LocalTime.of(15,0),  d);
-                    saveSchedule(scheduleRepository, "10A1", phys,  "D202", LocalTime.of(15,15), LocalTime.of(16,45), d);
-                }
-
                 // Assignments
                 saveAssignment(assignmentRepository, "BTVN Toán - Chương 2",  "Làm bài tập trang 32",    math, "10A1", LocalDateTime.now().withHour(20).withMinute(0));
                 saveAssignment(assignmentRepository, "Đọc hiểu Văn",           "Soạn bài Chí Phèo",       lit,  "10A1", LocalDateTime.now().plusDays(2));
@@ -122,6 +114,44 @@ public class DataSeeder {
 
                 System.out.println("====== MOCK DATA (Phase 1) ĐÃ ĐƯỢC TẠO ======");
             }
+
+            // ── FORCE RE-SEED SCHEDULES TO ENSURE VARIED DATA ───────────────
+            scheduleRepository.deleteAll();
+            Subject math = subjectRepository.findByName("Toán").orElseGet(() -> subjectRepository.save(newSubject("Toán")));
+            Subject eng  = subjectRepository.findByName("Tiếng Anh").orElseGet(() -> subjectRepository.save(newSubject("Tiếng Anh")));
+            Subject lit  = subjectRepository.findByName("Ngữ Văn").orElseGet(() -> subjectRepository.save(newSubject("Ngữ Văn")));
+            Subject phys = subjectRepository.findByName("Vật Lý").orElseGet(() -> subjectRepository.save(newSubject("Vật Lý")));
+            Subject chem = subjectRepository.findByName("Hóa Học").orElseGet(() -> subjectRepository.save(newSubject("Hóa Học")));
+
+            // Thứ 2
+            saveSchedule(scheduleRepository, "10A1", math,  "A203", LocalTime.of(7,30),  LocalTime.of(9,0),  2);
+            saveSchedule(scheduleRepository, "10A1", lit,   "B105", LocalTime.of(9,15),  LocalTime.of(10,45), 2);
+            saveSchedule(scheduleRepository, "10A1", eng,   "C301", LocalTime.of(13,30), LocalTime.of(15,0),  2);
+            saveSchedule(scheduleRepository, "10A1", phys,  "D202", LocalTime.of(15,15), LocalTime.of(16,45), 2);
+            
+            // Thứ 3
+            saveSchedule(scheduleRepository, "10A1", chem,  "A203", LocalTime.of(7,30),  LocalTime.of(9,0),  3);
+            saveSchedule(scheduleRepository, "10A1", math,  "B105", LocalTime.of(9,15),  LocalTime.of(10,45), 3);
+            saveSchedule(scheduleRepository, "10A1", phys,  "C301", LocalTime.of(13,30), LocalTime.of(15,0),  3);
+            saveSchedule(scheduleRepository, "10A1", eng,   "D202", LocalTime.of(15,15), LocalTime.of(16,45), 3);
+            
+            // Thứ 4
+            saveSchedule(scheduleRepository, "10A1", lit,   "A203", LocalTime.of(7,30),  LocalTime.of(9,0),  4);
+            saveSchedule(scheduleRepository, "10A1", chem,  "B105", LocalTime.of(9,15),  LocalTime.of(10,45), 4);
+            saveSchedule(scheduleRepository, "10A1", math,  "C301", LocalTime.of(13,30), LocalTime.of(15,0),  4);
+            saveSchedule(scheduleRepository, "10A1", phys,  "D202", LocalTime.of(15,15), LocalTime.of(16,45), 4);
+            
+            // Thứ 5
+            saveSchedule(scheduleRepository, "10A1", eng,   "A203", LocalTime.of(7,30),  LocalTime.of(9,0),  5);
+            saveSchedule(scheduleRepository, "10A1", phys,  "B105", LocalTime.of(9,15),  LocalTime.of(10,45), 5);
+            saveSchedule(scheduleRepository, "10A1", chem,  "C301", LocalTime.of(13,30), LocalTime.of(15,0),  5);
+            saveSchedule(scheduleRepository, "10A1", lit,   "D202", LocalTime.of(15,15), LocalTime.of(16,45), 5);
+
+            // Thứ 6
+            saveSchedule(scheduleRepository, "10A1", math,  "A203", LocalTime.of(7,30),  LocalTime.of(9,0),  6);
+            saveSchedule(scheduleRepository, "10A1", eng,   "B105", LocalTime.of(9,15),  LocalTime.of(10,45), 6);
+            saveSchedule(scheduleRepository, "10A1", lit,   "C301", LocalTime.of(13,30), LocalTime.of(15,0),  6);
+            saveSchedule(scheduleRepository, "10A1", chem,  "D202", LocalTime.of(15,15), LocalTime.of(16,45), 6);
 
             // ── NOTIFICATIONS (seeded independently so they survive Phase 1 skip) ────
             if (notificationRepository.count() == 0) {

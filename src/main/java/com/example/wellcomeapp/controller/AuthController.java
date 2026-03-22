@@ -34,6 +34,9 @@ public class AuthController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private com.example.wellcomeapp.security.JwtUtil jwtUtil;
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         String phone = loginRequest.getPhoneNumber();
@@ -66,13 +69,15 @@ public class AuthController {
                             .orElse(null);
                 }
 
+                String token = jwtUtil.generateToken(phone, primaryRole);
+
                 Map<String, Object> response = new HashMap<>();
                 response.put("message",   "Đăng nhập thành công");
                 response.put("userId",    user.getId());
                 response.put("fullName",  user.getFullName());
                 response.put("role",      primaryRole);
                 response.put("studentId", studentId);
-                response.put("token",     "fake-jwt-token-replace-later");
+                response.put("token",     token);
 
                 return ResponseEntity.ok(response);
             }

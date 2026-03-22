@@ -11,6 +11,7 @@ import com.example.wellcomeapp.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -29,6 +30,9 @@ public class AuthController {
 
     @Autowired
     private OtpCodeRepository otpCodeRepository;
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
@@ -43,7 +47,7 @@ public class AuthController {
 
         if (userOptional.isPresent()) {
             User user = userOptional.get();
-            if (user.getPassword().equals(pwd) && user.getIsActive()) {
+            if (passwordEncoder.matches(pwd, user.getPassword()) && user.getIsActive()) {
 
                 // Determine primary role
                 String primaryRole = user.getRoles().stream()
@@ -125,7 +129,7 @@ public class AuthController {
         Optional<User> userOpt = userRepository.findByPhoneNumber(request.getPhoneNumber());
         if (userOpt.isPresent()) {
             User user = userOpt.get();
-            user.setPassword(request.getNewPassword()); // Cập nhật mật khẩu mới
+            user.setPassword(passwordEncoder.encode(request.getNewPassword())); // Cập nhật mật khẩu mới (đã mã hóa)
             userRepository.save(user);
             return ResponseEntity.ok(Collections.singletonMap("message", "Đổi mật khẩu thành công"));
         }
@@ -157,11 +161,11 @@ public class AuthController {
         }
 
         User user = userOpt.get();
-        if (!user.getPassword().equals(oldPassword)) {
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Mật khẩu hiện tại không chính xác");
         }
 
-        user.setPassword(newPassword);
+        user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
         return ResponseEntity.ok(Collections.singletonMap("message", "Đổi mật khẩu thành công"));
     }

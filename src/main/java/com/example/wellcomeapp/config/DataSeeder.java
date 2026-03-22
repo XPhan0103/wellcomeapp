@@ -5,6 +5,7 @@ import com.example.wellcomeapp.repository.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -23,7 +24,8 @@ public class DataSeeder {
             AssignmentRepository assignmentRepository, NotificationRepository notificationRepository,
             AttendanceRepository attendanceRepository,
             TuitionPaymentRepository tuitionPaymentRepository,
-            LeaveRequestRepository leaveRequestRepository) {
+            LeaveRequestRepository leaveRequestRepository,
+            PasswordEncoder passwordEncoder) {
 
         return args -> {
             // ── ROLES ──────────────────────────────────────────────────────────
@@ -61,23 +63,29 @@ public class DataSeeder {
             Optional<User> userOpt = userRepository.findByPhoneNumber("0987654321");
             User parent;
             if (userOpt.isEmpty()) {
-                parent = new User("0987654321", "123456", "Phụ huynh Nguyễn Văn A");
+                parent = new User("0987654321", passwordEncoder.encode("123456"), "Phụ huynh Nguyễn Văn A");
                 parent.addRole(parentRole);
                 parent.addStudent(studentA);
                 userRepository.save(parent);
             } else {
                 parent = userOpt.get();
+                parent.setPassword(passwordEncoder.encode("123456")); // Force update to BCrypt
                 parent.addRole(parentRole);
                 parent.addStudent(studentA);
                 userRepository.save(parent);
             }
 
             // ── STUDENT USER (students can also login) ─────────────────────────────
-            if (userRepository.findByPhoneNumber("0912345678").isEmpty()) {
+            Optional<User> studentUserOpt = userRepository.findByPhoneNumber("0912345678");
+            if (studentUserOpt.isEmpty()) {
                 final Student fStudentRef = studentA;
-                User studentUser = new User("0912345678", "123456", "Nguyễn Văn A (Học sinh)");
+                User studentUser = new User("0912345678", passwordEncoder.encode("123456"), "Nguyễn Văn A (Học sinh)");
                 studentUser.addRole(studentRole);
                 studentUser.addStudent(fStudentRef);
+                userRepository.save(studentUser);
+            } else {
+                User studentUser = studentUserOpt.get();
+                studentUser.setPassword(passwordEncoder.encode("123456")); // Force update to BCrypt
                 userRepository.save(studentUser);
             }
 

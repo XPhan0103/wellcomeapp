@@ -14,8 +14,8 @@ public class Attendance {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "student_id", nullable = false)
-    private Student student;
+    @JoinColumn(name = "user_id", nullable = false)
+    private User student;
 
     @Column(name = "attendance_date", nullable = false)
     private LocalDate attendanceDate;
@@ -30,8 +30,8 @@ public class Attendance {
     // --- Getters / Setters ---
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    public Student getStudent() { return student; }
-    public void setStudent(Student student) { this.student = student; }
+    public User getStudent() { return student; }
+    public void setStudent(User student) { this.student = student; }
     public LocalDate getAttendanceDate() { return attendanceDate; }
     public void setAttendanceDate(LocalDate attendanceDate) { this.attendanceDate = attendanceDate; }
     public Status getStatus() { return status; }

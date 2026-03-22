@@ -15,8 +15,8 @@ public class LeaveRequest {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "student_id", nullable = false)
-    private Student student;
+    @JoinColumn(name = "user_id", nullable = false)
+    private User student;
 
     @Column(name = "reason", nullable = false, columnDefinition = "TEXT")
     private String reason;
@@ -37,8 +37,8 @@ public class LeaveRequest {
     // --- Getters / Setters ---
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    public Student getStudent() { return student; }
-    public void setStudent(Student student) { this.student = student; }
+    public User getStudent() { return student; }
+    public void setStudent(User student) { this.student = student; }
     public String getReason() { return reason; }
     public void setReason(String reason) { this.reason = reason; }
     public LocalDate getLeaveDate() { return leaveDate; }

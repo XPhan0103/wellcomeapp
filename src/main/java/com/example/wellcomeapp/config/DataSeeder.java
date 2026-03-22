@@ -19,7 +19,7 @@ public class DataSeeder {
     @Bean
     CommandLineRunner initDatabase(
             UserRepository userRepository, RoleRepository roleRepository,
-            StudentRepository studentRepository, SubjectRepository subjectRepository,
+            SubjectRepository subjectRepository,
             GradeRepository gradeRepository, ScheduleRepository scheduleRepository,
             AssignmentRepository assignmentRepository, NotificationRepository notificationRepository,
             AttendanceRepository attendanceRepository,
@@ -38,55 +38,47 @@ public class DataSeeder {
                 return roleRepository.save(r);
             });
 
-            // ── STUDENT ────────────────────────────────────────────────────────
-            Student studentA;
-            if (studentRepository.count() == 0) {
-                studentA = new Student();
-                studentA.setFullName("Nguyễn Văn A");
-                studentA.setStudentCode("HS2025001");
-                studentA.setClassName("10A1");
-                studentA.setSchoolYear("2025-2026");
-                studentA.setDateOfBirth(LocalDate.of(2009, 3, 15));
-                studentA.setAddress("123 Nguyễn Trãi, Quận 1, TP.HCM");
-                studentA = studentRepository.save(studentA);
+            // ── STUDENT USER AND PARENT USER ──────────────────────────────────
+            Optional<User> studentUserOpt = userRepository.findByPhoneNumber("0912345678");
+            User studentUser;
+            if (studentUserOpt.isEmpty()) {
+                studentUser = new User("0912345678", passwordEncoder.encode("123456"), "Nguyễn Văn A (Học sinh)");
+                studentUser.addRole(studentRole);
+                studentUser.setStudentCode("HS2025001");
+                studentUser.setClassName("10A1");
+                studentUser.setSchoolYear("2025-2026");
+                studentUser.setDateOfBirth(LocalDate.of(2009, 3, 15));
+                studentUser.setAddress("123 Nguyễn Trãi, Quận 1, TP.HCM");
+                studentUser = userRepository.save(studentUser);
             } else {
-                studentA = studentRepository.findAll().get(0);
+                studentUser = studentUserOpt.get();
+                studentUser.setPassword(passwordEncoder.encode("123456")); // Force update to BCrypt
                 // Patch missing fields
-                if (studentA.getDateOfBirth() == null) {
-                    studentA.setDateOfBirth(LocalDate.of(2009, 3, 15));
-                    studentA.setAddress("123 Nguyễn Trãi, Quận 1, TP.HCM");
-                    studentA = studentRepository.save(studentA);
+                if (studentUser.getDateOfBirth() == null) {
+                    studentUser.setDateOfBirth(LocalDate.of(2009, 3, 15));
+                    studentUser.setAddress("123 Nguyễn Trãi, Quận 1, TP.HCM");
+                    studentUser.setStudentCode("HS2025001");
+                    studentUser.setClassName("10A1");
+                    studentUser.setSchoolYear("2025-2026");
                 }
+                studentUser = userRepository.save(studentUser);
             }
 
-            // ── PARENT USER ────────────────────────────────────────────────────
-            Optional<User> userOpt = userRepository.findByPhoneNumber("0987654321");
+            Optional<User> parentOpt = userRepository.findByPhoneNumber("0987654321");
             User parent;
-            if (userOpt.isEmpty()) {
+            if (parentOpt.isEmpty()) {
                 parent = new User("0987654321", passwordEncoder.encode("123456"), "Phụ huynh Nguyễn Văn A");
                 parent.addRole(parentRole);
-                parent.addStudent(studentA);
-                userRepository.save(parent);
+                parent.addChild(studentUser);
+                parent = userRepository.save(parent);
             } else {
-                parent = userOpt.get();
+                parent = parentOpt.get();
                 parent.setPassword(passwordEncoder.encode("123456")); // Force update to BCrypt
                 parent.addRole(parentRole);
-                parent.addStudent(studentA);
-                userRepository.save(parent);
-            }
-
-            // ── STUDENT USER (students can also login) ─────────────────────────────
-            Optional<User> studentUserOpt = userRepository.findByPhoneNumber("0912345678");
-            if (studentUserOpt.isEmpty()) {
-                final Student fStudentRef = studentA;
-                User studentUser = new User("0912345678", passwordEncoder.encode("123456"), "Nguyễn Văn A (Học sinh)");
-                studentUser.addRole(studentRole);
-                studentUser.addStudent(fStudentRef);
-                userRepository.save(studentUser);
-            } else {
-                User studentUser = studentUserOpt.get();
-                studentUser.setPassword(passwordEncoder.encode("123456")); // Force update to BCrypt
-                userRepository.save(studentUser);
+                if (!parent.getChildren().contains(studentUser)) {
+                    parent.addChild(studentUser);
+                }
+                parent = userRepository.save(parent);
             }
 
             // ── SUBJECTS + GRADES + SCHEDULES + ASSIGNMENTS + NOTIFICATIONS ───
@@ -98,21 +90,21 @@ public class DataSeeder {
                 Subject chem = subjectRepository.save(newSubject("Hóa Học"));
 
                 // Grades – HK1 with semester + weight
-                saveGradeEx(gradeRepository, studentA, math,  8.5, "15 phút",  "HK1", 1);
-                saveGradeEx(gradeRepository, studentA, math,  9.0, "Giữa kỳ",  "HK1", 2);
-                saveGradeEx(gradeRepository, studentA, math,  8.0, "Cuối kỳ",   "HK1", 3);
-                saveGradeEx(gradeRepository, studentA, eng,   9.0, "Miệng",      "HK1", 1);
-                saveGradeEx(gradeRepository, studentA, eng,   8.5, "1 tiết",    "HK1", 2);
-                saveGradeEx(gradeRepository, studentA, eng,   9.5, "Cuối kỳ",   "HK1", 3);
-                saveGradeEx(gradeRepository, studentA, lit,   7.5, "1 tiết",    "HK1", 2);
-                saveGradeEx(gradeRepository, studentA, lit,   7.0, "Giữa kỳ",  "HK1", 2);
-                saveGradeEx(gradeRepository, studentA, lit,   8.0, "Cuối kỳ",   "HK1", 3);
-                saveGradeEx(gradeRepository, studentA, phys,  8.0, "15 phút",  "HK1", 1);
-                saveGradeEx(gradeRepository, studentA, phys,  7.5, "Giữa kỳ",  "HK1", 2);
-                saveGradeEx(gradeRepository, studentA, phys,  8.5, "Cuối kỳ",   "HK1", 3);
-                saveGradeEx(gradeRepository, studentA, chem,  7.0, "Miệng",      "HK1", 1);
-                saveGradeEx(gradeRepository, studentA, chem,  6.5, "1 tiết",    "HK1", 2);
-                saveGradeEx(gradeRepository, studentA, chem,  7.5, "Cuối kỳ",   "HK1", 3);
+                saveGradeEx(gradeRepository, studentUser, math,  8.5, "15 phút",  "HK1", 1);
+                saveGradeEx(gradeRepository, studentUser, math,  9.0, "Giữa kỳ",  "HK1", 2);
+                saveGradeEx(gradeRepository, studentUser, math,  8.0, "Cuối kỳ",   "HK1", 3);
+                saveGradeEx(gradeRepository, studentUser, eng,   9.0, "Miệng",      "HK1", 1);
+                saveGradeEx(gradeRepository, studentUser, eng,   8.5, "1 tiết",    "HK1", 2);
+                saveGradeEx(gradeRepository, studentUser, eng,   9.5, "Cuối kỳ",   "HK1", 3);
+                saveGradeEx(gradeRepository, studentUser, lit,   7.5, "1 tiết",    "HK1", 2);
+                saveGradeEx(gradeRepository, studentUser, lit,   7.0, "Giữa kỳ",  "HK1", 2);
+                saveGradeEx(gradeRepository, studentUser, lit,   8.0, "Cuối kỳ",   "HK1", 3);
+                saveGradeEx(gradeRepository, studentUser, phys,  8.0, "15 phút",  "HK1", 1);
+                saveGradeEx(gradeRepository, studentUser, phys,  7.5, "Giữa kỳ",  "HK1", 2);
+                saveGradeEx(gradeRepository, studentUser, phys,  8.5, "Cuối kỳ",   "HK1", 3);
+                saveGradeEx(gradeRepository, studentUser, chem,  7.0, "Miệng",      "HK1", 1);
+                saveGradeEx(gradeRepository, studentUser, chem,  6.5, "1 tiết",    "HK1", 2);
+                saveGradeEx(gradeRepository, studentUser, chem,  7.5, "Cuối kỳ",   "HK1", 3);
 
                 // Assignments
                 saveAssignment(assignmentRepository, "BTVN Toán - Chương 2",  "Làm bài tập trang 32",    math, "10A1", LocalDateTime.now().withHour(20).withMinute(0));
@@ -210,7 +202,7 @@ public class DataSeeder {
                     if (i == 17) { status = Attendance.Status.LATE;    note = "Đến muộn 15 phút"; }
                     if (i == 22) { status = Attendance.Status.ABSENT;  note = "Xin phép có việc gia đình"; }
                     Attendance att = new Attendance();
-                    att.setStudent(studentA);
+                    att.setStudent(studentUser);
                     att.setAttendanceDate(d);
                     att.setStatus(status);
                     att.setNote(note);
@@ -221,7 +213,7 @@ public class DataSeeder {
 
             // ── TUITION PAYMENTS ────────────────────────────────────────────────
             if (tuitionPaymentRepository.count() == 0) {
-                final Student fStudentA = studentA;
+                final User fStudentA = studentUser;
                 saveTuition(tuitionPaymentRepository, fStudentA, "Học phí tháng 1/2026",     3_500_000, TuitionPayment.Status.PAID,   LocalDate.of(2026, 1, 20), LocalDate.of(2026, 1, 18));
                 saveTuition(tuitionPaymentRepository, fStudentA, "Học phí tháng 2/2026",     3_500_000, TuitionPayment.Status.PAID,   LocalDate.of(2026, 2, 20), LocalDate.of(2026, 2, 15));
                 saveTuition(tuitionPaymentRepository, fStudentA, "Học phí tháng 3/2026",     3_500_000, TuitionPayment.Status.UNPAID, LocalDate.of(2026, 3, 25), null);
@@ -232,7 +224,7 @@ public class DataSeeder {
 
             // ── LEAVE REQUESTS ─────────────────────────────────────────────────
             if (leaveRequestRepository.count() == 0) {
-                final Student fStudentA = studentA;
+                final User fStudentA = studentUser;
                 saveLeaveReq(leaveRequestRepository, fStudentA, "Ốm sốt, cần nghỉ để điều trị", LocalDate.now().minusDays(10), LeaveRequest.Status.APPROVED, LocalDateTime.now().minusDays(11));
                 saveLeaveReq(leaveRequestRepository, fStudentA, "Có việc gia đình đột xuất",    LocalDate.now().minusDays(22), LeaveRequest.Status.APPROVED, LocalDateTime.now().minusDays(23));
                 saveLeaveReq(leaveRequestRepository, fStudentA, "Khám bệnh định kỳ",            LocalDate.now().plusDays(5),   LeaveRequest.Status.PENDING,  LocalDateTime.now().minusDays(1));
@@ -247,12 +239,7 @@ public class DataSeeder {
         Subject s = new Subject(); s.setName(name); return s;
     }
 
-    private void saveGrade(GradeRepository repo, Student s, Subject subj, double score, String type) {
-        Grade g = new Grade(); g.setStudent(s); g.setSubject(subj); g.setScore(score); g.setType(type);
-        repo.save(g);
-    }
-
-    private void saveGradeEx(GradeRepository repo, Student s, Subject subj, double score,
+    private void saveGradeEx(GradeRepository repo, User s, Subject subj, double score,
                              String type, String semester, int weight) {
         Grade g = new Grade();
         g.setStudent(s); g.setSubject(subj); g.setScore(score);
@@ -276,11 +263,6 @@ public class DataSeeder {
         repo.save(a);
     }
 
-    private void saveNotification(NotificationRepository repo, String title, String content) {
-        Notification n = new Notification(); n.setTitle(title); n.setContent(content);
-        repo.save(n);
-    }
-
     private void saveNotifEx(NotificationRepository repo, String title, String content,
                              String category, boolean isRead) {
         Notification n = new Notification();
@@ -291,7 +273,7 @@ public class DataSeeder {
         repo.save(n);
     }
 
-    private void saveTuition(TuitionPaymentRepository repo, Student student,
+    private void saveTuition(TuitionPaymentRepository repo, User student,
                              String desc, long amount, TuitionPayment.Status status,
                              LocalDate dueDate, LocalDate paidAt) {
         TuitionPayment t = new TuitionPayment();
@@ -304,7 +286,7 @@ public class DataSeeder {
         repo.save(t);
     }
 
-    private void saveLeaveReq(LeaveRequestRepository repo, Student student,
+    private void saveLeaveReq(LeaveRequestRepository repo, User student,
                               String reason, LocalDate leaveDate,
                               LeaveRequest.Status status, LocalDateTime createdAt) {
         LeaveRequest r = new LeaveRequest();

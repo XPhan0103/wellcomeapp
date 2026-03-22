@@ -1,7 +1,7 @@
 package com.example.wellcomeapp.controller;
 
-import com.example.wellcomeapp.model.Student;
-import com.example.wellcomeapp.repository.StudentRepository;
+import com.example.wellcomeapp.model.User;
+import com.example.wellcomeapp.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,17 +13,17 @@ import java.util.List;
 public class StudentController {
 
     @Autowired
-    private StudentRepository studentRepository;
+    private UserRepository userRepository;
 
     // API: Lấy danh sách tất cả sinh viên (Gọi bằng phương thức GET)
     @GetMapping
-    public List<Student> getAllStudents() {
-        return studentRepository.findAll();
+    public List<User> getAllStudents() {
+        return userRepository.findAll();
     }
 
     // API: Thêm một sinh viên mới (Gọi bằng phương thức POST)
     @PostMapping
-    public Student createStudent(@RequestBody Student student) {
-        return studentRepository.save(student);
+    public User createStudent(@RequestBody User student) {
+        return userRepository.save(student);
     }
 }

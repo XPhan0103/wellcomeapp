@@ -1,9 +1,9 @@
 package com.example.wellcomeapp.controller;
 
 import com.example.wellcomeapp.model.Grade;
-import com.example.wellcomeapp.model.Student;
+import com.example.wellcomeapp.model.User;
 import com.example.wellcomeapp.repository.GradeRepository;
-import com.example.wellcomeapp.repository.StudentRepository;
+import com.example.wellcomeapp.repository.UserRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,11 +14,11 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/students")
 public class StudentDashboardController {
 
-    private final StudentRepository studentRepo;
+    private final UserRepository userRepo;
     private final GradeRepository gradeRepo;
 
-    public StudentDashboardController(StudentRepository studentRepo, GradeRepository gradeRepo) {
-        this.studentRepo = studentRepo;
+    public StudentDashboardController(UserRepository userRepo, GradeRepository gradeRepo) {
+        this.userRepo = userRepo;
         this.gradeRepo = gradeRepo;
     }
 
@@ -28,7 +28,7 @@ public class StudentDashboardController {
      */
     @GetMapping("/{studentId}/dashboard")
     public ResponseEntity<?> getStudentDashboard(@PathVariable Long studentId) {
-        Student student = studentRepo.findById(studentId)
+        User student = userRepo.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
         List<Grade> allGrades = gradeRepo.findByStudentIdOrderByCreatedAtDesc(studentId);

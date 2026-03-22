@@ -1,9 +1,9 @@
 package com.example.wellcomeapp.controller;
 
 import com.example.wellcomeapp.model.FeedbackMessage;
-import com.example.wellcomeapp.model.Student;
+import com.example.wellcomeapp.model.User;
 import com.example.wellcomeapp.repository.FeedbackMessageRepository;
-import com.example.wellcomeapp.repository.StudentRepository;
+import com.example.wellcomeapp.repository.UserRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,11 +18,11 @@ import java.util.stream.Collectors;
 public class FeedbackController {
 
     private final FeedbackMessageRepository feedbackRepo;
-    private final StudentRepository studentRepo;
+    private final UserRepository userRepo;
 
-    public FeedbackController(FeedbackMessageRepository feedbackRepo, StudentRepository studentRepo) {
+    public FeedbackController(FeedbackMessageRepository feedbackRepo, UserRepository userRepo) {
         this.feedbackRepo = feedbackRepo;
-        this.studentRepo = studentRepo;
+        this.userRepo = userRepo;
     }
 
     /** GET /api/parents/students/{studentId}/feedback */
@@ -52,7 +52,7 @@ public class FeedbackController {
             @PathVariable Long studentId,
             @RequestBody Map<String, String> body) {
 
-        Student student = studentRepo.findById(studentId)
+        User student = userRepo.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
         FeedbackMessage msg = new FeedbackMessage();

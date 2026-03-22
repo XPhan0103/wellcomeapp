@@ -1,9 +1,9 @@
 package com.example.wellcomeapp.controller;
 
 import com.example.wellcomeapp.model.LeaveRequest;
-import com.example.wellcomeapp.model.Student;
+import com.example.wellcomeapp.model.User;
 import com.example.wellcomeapp.repository.LeaveRequestRepository;
-import com.example.wellcomeapp.repository.StudentRepository;
+import com.example.wellcomeapp.repository.UserRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
@@ -17,11 +17,11 @@ import java.util.stream.Collectors;
 public class LeaveRequestController {
 
     private final LeaveRequestRepository leaveRepo;
-    private final StudentRepository studentRepo;
+    private final UserRepository userRepo;
 
-    public LeaveRequestController(LeaveRequestRepository leaveRepo, StudentRepository studentRepo) {
+    public LeaveRequestController(LeaveRequestRepository leaveRepo, UserRepository userRepo) {
         this.leaveRepo = leaveRepo;
-        this.studentRepo = studentRepo;
+        this.userRepo = userRepo;
     }
 
     /** Danh sách đơn xin nghỉ của học sinh */
@@ -45,7 +45,7 @@ public class LeaveRequestController {
             @PathVariable Long studentId,
             @RequestBody Map<String, String> body) {
 
-        Student student = studentRepo.findById(studentId)
+        User student = userRepo.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
         LeaveRequest request = new LeaveRequest();

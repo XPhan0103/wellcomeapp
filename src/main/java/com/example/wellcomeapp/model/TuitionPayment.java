@@ -15,8 +15,8 @@ public class TuitionPayment {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "student_id", nullable = false)
-    private Student student;
+    @JoinColumn(name = "user_id", nullable = false)
+    private User student;
 
     @Column(name = "description", nullable = false)
     private String description;
@@ -37,8 +37,8 @@ public class TuitionPayment {
     // --- Getters / Setters ---
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    public Student getStudent() { return student; }
-    public void setStudent(Student student) { this.student = student; }
+    public User getStudent() { return student; }
+    public void setStudent(User student) { this.student = student; }
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
     public BigDecimal getAmount() { return amount; }

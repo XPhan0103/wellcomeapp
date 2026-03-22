@@ -56,10 +56,15 @@ public class AuthController {
                         .orElse("ROLE_UNKNOWN");
 
                 // Linked student id (for ROLE_PARENT or ROLE_STUDENT)
-                Long studentId = user.getStudents().stream()
-                        .findFirst()
-                        .map(s -> s.getId())
-                        .orElse(null);
+                Long studentId = null;
+                if ("ROLE_STUDENT".equals(primaryRole)) {
+                    studentId = user.getId();
+                } else if ("ROLE_PARENT".equals(primaryRole)) {
+                    studentId = user.getChildren().stream()
+                            .findFirst()
+                            .map(User::getId)
+                            .orElse(null);
+                }
 
                 Map<String, Object> response = new HashMap<>();
                 response.put("message",   "Đăng nhập thành công");

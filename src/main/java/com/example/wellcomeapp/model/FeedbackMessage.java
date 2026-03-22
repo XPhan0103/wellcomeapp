@@ -12,8 +12,8 @@ public class FeedbackMessage {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "student_id", nullable = false)
-    private Student student;
+    @JoinColumn(name = "user_id", nullable = false)
+    private User student;
 
     /** Tên phụ huynh gửi */
     @Column(name = "sender_name", nullable = false)
@@ -43,8 +43,8 @@ public class FeedbackMessage {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    public Student getStudent() { return student; }
-    public void setStudent(Student student) { this.student = student; }
+    public User getStudent() { return student; }
+    public void setStudent(User student) { this.student = student; }
     public String getSenderName() { return senderName; }
     public void setSenderName(String senderName) { this.senderName = senderName; }
     public String getSubject() { return subject; }

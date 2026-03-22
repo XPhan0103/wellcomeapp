@@ -2,6 +2,7 @@ package com.example.wellcomeapp.model;
 
 import jakarta.persistence.*;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -99,9 +100,29 @@ public class User {
         this.roles = roles;
     }
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "parent_student", joinColumns = @JoinColumn(name = "parent_id"), inverseJoinColumns = @JoinColumn(name = "student_id"))
-    private Set<Student> students = new HashSet<>();
+    // --- Student-specific fields ---
+    @Column(name = "student_code", length = 50)
+    private String studentCode;
+
+    @Column(name = "class_name", length = 50)
+    private String className;
+
+    @Column(name = "school_year", length = 50)
+    private String schoolYear;
+
+    @Column(name = "date_of_birth")
+    private LocalDate dateOfBirth;
+
+    @Column(length = 255)
+    private String address;
+
+    // --- Relationship ---
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private User parent;
+
+    @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY)
+    private Set<User> children = new HashSet<>();
 
     public void addRole(Role role) {
         this.roles.add(role);
@@ -111,7 +132,30 @@ public class User {
         this.roles.remove(role);
     }
 
-    public Set<Student> getStudents() { return students; }
-    public void setStudents(Set<Student> students) { this.students = students; }
-    public void addStudent(Student student) { this.students.add(student); }
+    // --- New Getters and Setters ---
+    public String getStudentCode() { return studentCode; }
+    public void setStudentCode(String studentCode) { this.studentCode = studentCode; }
+
+    public String getClassName() { return className; }
+    public void setClassName(String className) { this.className = className; }
+
+    public String getSchoolYear() { return schoolYear; }
+    public void setSchoolYear(String schoolYear) { this.schoolYear = schoolYear; }
+
+    public LocalDate getDateOfBirth() { return dateOfBirth; }
+    public void setDateOfBirth(LocalDate dateOfBirth) { this.dateOfBirth = dateOfBirth; }
+
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+
+    public User getParent() { return parent; }
+    public void setParent(User parent) { this.parent = parent; }
+
+    public Set<User> getChildren() { return children; }
+    public void setChildren(Set<User> children) { this.children = children; }
+
+    public void addChild(User child) {
+        this.children.add(child);
+        child.setParent(this);
+    }
 }

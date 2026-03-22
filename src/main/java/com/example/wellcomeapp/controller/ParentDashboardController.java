@@ -3,10 +3,10 @@ package com.example.wellcomeapp.controller;
 import com.example.wellcomeapp.dto.DashboardResponse;
 import com.example.wellcomeapp.model.Assignment;
 import com.example.wellcomeapp.model.Schedule;
-import com.example.wellcomeapp.model.Student;
+import com.example.wellcomeapp.model.User;
 import com.example.wellcomeapp.repository.AssignmentRepository;
 import com.example.wellcomeapp.repository.ScheduleRepository;
-import com.example.wellcomeapp.repository.StudentRepository;
+import com.example.wellcomeapp.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 public class ParentDashboardController {
 
     @Autowired
-    private StudentRepository studentRepository;
+    private UserRepository userRepository;
 
     @Autowired
     private ScheduleRepository scheduleRepository;
@@ -32,12 +32,12 @@ public class ParentDashboardController {
 
     @GetMapping("/students/{studentId}/dashboard")
     public ResponseEntity<?> getStudentDashboard(@PathVariable Long studentId) {
-        Optional<Student> studentOpt = studentRepository.findById(studentId);
+        Optional<User> studentOpt = userRepository.findById(studentId);
         if (studentOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
-        Student student = studentOpt.get();
+        User student = studentOpt.get();
         DashboardResponse response = new DashboardResponse();
         
         // 1. Student Info

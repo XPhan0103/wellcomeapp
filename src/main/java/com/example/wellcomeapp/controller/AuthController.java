@@ -37,6 +37,9 @@ public class AuthController {
     @Autowired
     private com.example.wellcomeapp.security.JwtUtil jwtUtil;
 
+    @Autowired
+    private com.example.wellcomeapp.service.EmailService emailService;
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         String phone = loginRequest.getPhoneNumber();
@@ -107,6 +110,18 @@ public class AuthController {
         otpCodeRepository.save(otpCode);
 
         System.out.println("========== MÃ OTP DÀNH CHO SĐT " + phone + " CHÍNH LÀ: " + otp + " ==========");
+
+        // Gửi OTP qua Email
+        if (userOpt.get().getEmail() != null && !userOpt.get().getEmail().isEmpty()) {
+            try {
+                emailService.sendOtpEmail(userOpt.get().getEmail(), otp);
+                System.out.println("Đã gửi OTP qua mail tới: " + userOpt.get().getEmail());
+            } catch (Exception e) {
+                System.err.println("Lỗi khi gửi email: " + e.getMessage());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("Không thể gửi email OTP do lỗi cấu hình máy chủ.");
+            }
+        }
 
         Map<String, String> response = new HashMap<>();
         response.put("message", "Mã OTP đã được gửi");

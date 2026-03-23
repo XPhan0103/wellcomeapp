@@ -22,6 +22,9 @@ public class User {
     @Column(name = "full_name")
     private String fullName;
 
+    @Column(name = "email", length = 100)
+    private String email;
+
     @Column(name = "is_active")
     private Boolean isActive = true;
 
@@ -58,6 +61,14 @@ public class User {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getPassword() {

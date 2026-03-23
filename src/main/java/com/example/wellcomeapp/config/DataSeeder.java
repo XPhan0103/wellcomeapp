@@ -43,6 +43,7 @@ public class DataSeeder {
             User studentUser;
             if (studentUserOpt.isEmpty()) {
                 studentUser = new User("0912345678", passwordEncoder.encode("123456"), "Nguyễn Văn A (Học sinh)");
+                studentUser.setEmail("nhanpthe182053@fpt.edu.vn");
                 studentUser.addRole(studentRole);
                 studentUser.setStudentCode("HS2025001");
                 studentUser.setClassName("10A1");
@@ -54,6 +55,7 @@ public class DataSeeder {
                 studentUser = studentUserOpt.get();
                 studentUser.setPassword(passwordEncoder.encode("123456")); // Force update to BCrypt
                 // Patch missing fields
+                studentUser.setEmail("nhanpthe182053@fpt.edu.vn");
                 if (studentUser.getDateOfBirth() == null) {
                     studentUser.setDateOfBirth(LocalDate.of(2009, 3, 15));
                     studentUser.setAddress("123 Nguyễn Trãi, Quận 1, TP.HCM");
@@ -68,12 +70,14 @@ public class DataSeeder {
             User parent;
             if (parentOpt.isEmpty()) {
                 parent = new User("0987654321", passwordEncoder.encode("123456"), "Phụ huynh Nguyễn Văn A");
+                parent.setEmail("nhanpthe182053@fpt.edu.vn");
                 parent.addRole(parentRole);
                 parent.addChild(studentUser);
                 parent = userRepository.save(parent);
             } else {
                 parent = parentOpt.get();
                 parent.setPassword(passwordEncoder.encode("123456")); // Force update to BCrypt
+                parent.setEmail("nhanpthe182053@fpt.edu.vn");
                 parent.addRole(parentRole);
                 if (!parent.getChildren().contains(studentUser)) {
                     parent.addChild(studentUser);

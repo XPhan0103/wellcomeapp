@@ -26,7 +26,7 @@ public class Assignment {
     @Column(name = "due_date")
     private LocalDateTime dueDate;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
     private boolean completed = false;
 
     public Long getId() { return id; }

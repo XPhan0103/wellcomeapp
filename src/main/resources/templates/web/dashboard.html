@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Nhập Liệu Giảng Viên</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        
+        body { background-color: #f4f7fe; color: #2b3674; }
+
+        /* Sidebar Layer */
+        .sidebar {
+            width: 250px;
+            background: #fff;
+            height: 100vh;
+            position: fixed;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.02);
+            padding: 30px 20px;
+        }
+
+        .brand {
+            font-size: 24px;
+            font-weight: 800;
+            color: #000DFF;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .menu-item {
+            padding: 12px 15px;
+            border-radius: 12px;
+            color: #a3aed1;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .menu-item.active, .menu-item:hover {
+            background: rgba(0, 13, 255, 0.05);
+            color: #000DFF;
+        }
+
+        .menu-item.logout {
+            color: #ff5b5b;
+            margin-top: auto;
+            position: absolute;
+            bottom: 30px;
+            width: calc(100% - 40px);
+        }
+
+        .menu-item.logout:hover {
+            background: rgba(255, 91, 91, 0.1);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 250px;
+            padding: 40px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 { font-size: 28px; font-weight: 700; color: #2b3674; }
+        .user-info { display: flex; align-items: center; gap: 15px; background: #fff; padding: 10px 20px; border-radius: 50px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .user-info .avatar { width: 40px; height: 40px; background: #000DFF; color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; }
+        
+        /* Upload Card */
+        .upload-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+            text-align: center;
+        }
+
+        .upload-area {
+            border: 2px dashed #000DFF;
+            border-radius: 16px;
+            padding: 60px 20px;
+            background: rgba(0, 13, 255, 0.02);
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 25px;
+        }
+
+        .upload-area:hover, .upload-area.dragover {
+            background: rgba(0, 13, 255, 0.08);
+            border-style: solid;
+        }
+
+        .upload-area i { font-size: 64px; color: #000DFF; margin-bottom: 15px; }
+        .upload-area h3 { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+        .upload-area p { color: #a3aed1; font-size: 14px; }
+
+        input[type="file"] { display: none; }
+
+        .btn-upload {
+            background: linear-gradient(90deg, #6B73FF 0%, #000DFF 100%);
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0, 13, 255, 0.2);
+            transition: transform 0.2s;
+        }
+
+        .btn-upload:hover { transform: translateY(-2px); }
+        .btn-upload:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; transform: none; }
+
+        /* Notification */
+        .alert {
+            margin-top: 25px;
+            padding: 15px 20px;
+            border-radius: 10px;
+            display: none;
+            font-weight: 500;
+        }
+        .alert.success { background: #e6f9f0; color: #04b868; }
+        .alert.error { background: #ffebeb; color: #ff5b5b; }
+        
+        /* Guide */
+        .guide-box { margin-top: 30px; text-align: left; padding: 20px; background: #f8f9fc; border-radius: 12px; }
+        .guide-box h4 { margin-bottom: 15px; color: #2b3674; }
+        .guide-box ul { padding-left: 20px; color: #666; line-height: 1.8; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <script>
+        // Middleware: Check Auth
+        const token = localStorage.getItem('teacher_jwt');
+        if (!token) window.location.href = '/web/teacher/login';
+    </script>
+
+    <div class="sidebar">
+        <div class="brand">MyFSchool</div>
+        <div class="menu-item active"><i class="ri-file-excel-2-fill"></i> Import Điểm Số</div>
+        <!-- <div class="menu-item"><i class="ri-calendar-event-fill"></i> Import TKB</div> -->
+        
+        <div class="menu-item logout" onclick="logout()"><i class="ri-logout-box-r-line"></i> Đăng xuất</div>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <div>
+                <h1>Cổng Nhập Điểm Excel</h1>
+                <p style="color: #a3aed1; margin-top: 5px;">Tải điểm hàng loạt lên CSDL bằng file .xlsx</p>
+            </div>
+            
+            <div class="user-info">
+                <div class="avatar" id="userAvatar">GV</div>
+                <div style="font-weight: 600;" id="userName">Giảng Viên</div>
+            </div>
+        </div>
+
+        <div class="upload-card">
+            <div class="upload-area" id="dropArea" onclick="document.getElementById('fileInput').click()">
+                <i class="ri-upload-cloud-2-line"></i>
+                <h3 id="fileNameText">Kéo thả file Excel hoặc Nhấp để chọn</h3>
+                <p>Chỉ hỗ trợ file định dạng .xlsx, .xls</p>
+            </div>
+            
+            <input type="file" id="fileInput" accept=".xlsx, .xls">
+            
+            <button class="btn-upload" id="uploadBtn" disabled onclick="uploadFile()">Bắt Đầu Nạp Dữ Liệu</button>
+            <div class="alert" id="statusBox"></div>
+
+            <div class="guide-box">
+                <h4>Cấu trúc cột Excel Tối thiểu:</h4>
+                <ul>
+                    <li><b>Cột A (Index 0):</b> Mã học sinh (Ví dụ: HS2025001)</li>
+                    <li><b>Cột B (Index 1):</b> Tên môn học (Ví dụ: Toán)</li>
+                    <li><b>Cột C (Index 2):</b> Điểm số (Ví dụ: 8.5)</li>
+                    <li><b>Cột D (Index 3):</b> Loại điểm (Tùy chọn, mặc định: Miệng)</li>
+                    <li><b>Cột E (Index 4):</b> Học kỳ (Tùy chọn, mặc định: HK1)</li>
+                </ul>
+                <p style="margin-top: 10px; font-size: 13px; color: #888;">Lưu ý: Bỏ qua dòng số 1 (dòng Header).</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('userName').innerText = localStorage.getItem('teacher_name') || 'Giảng Viên';
+        document.getElementById('userAvatar').innerText = (localStorage.getItem('teacher_name') || 'G').charAt(0).toUpperCase();
+
+        const dropArea = document.getElementById('dropArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileNameText = document.getElementById('fileNameText');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const statusBox = document.getElementById('statusBox');
+
+        let selectedFile = null;
+
+        // Visual Effects for Drag & Drop
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => dropArea.addEventListener(evt, e => e.preventDefault()));
+        ['dragenter', 'dragover'].forEach(evt => dropArea.addEventListener(evt, () => dropArea.classList.add('dragover')));
+        ['dragleave', 'drop'].forEach(evt => dropArea.addEventListener(evt, () => dropArea.classList.remove('dragover')));
+
+        dropArea.addEventListener('drop', e => {
+            const dt = e.dataTransfer;
+            if (dt.files && dt.files.length > 0) handleFile(dt.files[0]);
+        });
+        fileInput.addEventListener('change', e => {
+            if (e.target.files.length > 0) handleFile(e.target.files[0]);
+        });
+
+        function handleFile(file) {
+            selectedFile = file;
+            fileNameText.innerText = "Đã chọn: " + file.name;
+            fileNameText.style.color = "#04b868";
+            uploadBtn.disabled = false;
+        }
+
+        async function uploadFile() {
+            if (!selectedFile) return;
+            
+            uploadBtn.disabled = true;
+            uploadBtn.innerText = "Đang xử lý...";
+            statusBox.style.display = 'none';
+
+            const formData = new FormData();
+            formData.append("file", selectedFile);
+
+            try {
+                const response = await fetch('/api/teacher/upload-grades', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('teacher_jwt') },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                statusBox.style.display = 'block';
+                if (response.ok) {
+                    statusBox.className = 'alert success';
+                    statusBox.innerHTML = '<i class="ri-checkbox-circle-fill"></i> ' + data.message;
+                    // Reset
+                    selectedFile = null;
+                    fileNameText.innerText = "Kéo thả file Excel hoặc Nhấp để chọn";
+                    fileNameText.style.color = "#2b3674";
+                    fileInput.value = '';
+                } else {
+                    statusBox.className = 'alert error';
+                    statusBox.innerHTML = '<i class="ri-error-warning-fill"></i> ' + data.error;
+                    uploadBtn.disabled = false;
+                }
+            } catch (e) {
+                statusBox.className = 'alert error';
+                statusBox.innerHTML = '<i class="ri-wifi-off-line"></i> Lỗi mất kết nối đến máy chủ!';
+                uploadBtn.disabled = false;
+            } finally {
+                if(selectedFile == null) uploadBtn.innerText = "Bắt Đầu Nạp Dữ Liệu";
+            }
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/web/teacher/login';
+        }
+    </script>
+</body>
+</html>

@@ -37,6 +37,10 @@ public class DataSeeder {
                 Role r = new Role(); r.setName("ROLE_STUDENT"); r.setDescription("Học sinh");
                 return roleRepository.save(r);
             });
+            Role teacherRole = roleRepository.findByName("ROLE_TEACHER").orElseGet(() -> {
+                Role r = new Role(); r.setName("ROLE_TEACHER"); r.setDescription("Giảng viên");
+                return roleRepository.save(r);
+            });
 
             // ── STUDENT USER AND PARENT USER ──────────────────────────────────
             Optional<User> studentUserOpt = userRepository.findByPhoneNumber("0912345678");
@@ -83,6 +87,21 @@ public class DataSeeder {
                     parent.addChild(studentUser);
                 }
                 parent = userRepository.save(parent);
+            }
+
+            Optional<User> teacherOpt = userRepository.findByPhoneNumber("0999999999");
+            User teacherUser;
+            if (teacherOpt.isEmpty()) {
+                teacherUser = new User("0999999999", passwordEncoder.encode("123456"), "Giảng viên Trần Văn B");
+                teacherUser.setEmail("teacher@fpt.edu.vn");
+                teacherUser.addRole(teacherRole);
+                teacherUser = userRepository.save(teacherUser);
+            } else {
+                teacherUser = teacherOpt.get();
+                teacherUser.setPassword(passwordEncoder.encode("123456"));
+                teacherUser.setEmail("teacher@fpt.edu.vn");
+                teacherUser.addRole(teacherRole);
+                teacherUser = userRepository.save(teacherUser);
             }
 
             // ── SUBJECTS + GRADES + SCHEDULES + ASSIGNMENTS + NOTIFICATIONS ───

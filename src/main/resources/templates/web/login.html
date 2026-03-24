@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập Giảng Viên - MyFSchool Web</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 900;
+            color: #000DFF; /* Primary color from Flutter */
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #000DFF;
+            box-shadow: 0 0 0 3px rgba(0, 13, 255, 0.1);
+        }
+
+        .btn-login {
+            background: linear-gradient(90deg, #6B73FF 0%, #000DFF 100%);
+            color: white;
+            border: none;
+            padding: 14px;
+            width: 100%;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 13, 255, 0.2);
+        }
+
+        .error-message {
+            color: #e74c3c;
+            text-align: center;
+            font-size: 14px;
+            margin-top: 15px;
+            display: none;
+        }
+        
+        /* Loading Overlay */
+        .overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(255,255,255,0.7); z-index: 10; justify-content: center; align-items: center; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #000DFF; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="overlay" id="loadingOverlay"><div class="spinner"></div></div>
+
+    <div class="login-container">
+        <div class="logo">MyFSchool Web</div>
+        <div class="subtitle">Cổng nhập Liệu Dành Cho Giảng Viên</div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="phoneNumber">Số điện thoại</label>
+                <input type="text" id="phoneNumber" class="form-control" placeholder="Ví dụ: 0999999999" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Mật khẩu</label>
+                <input type="password" id="password" class="form-control" placeholder="••••••" required>
+            </div>
+
+            <button type="submit" class="btn-login">Đăng nhập ngay</button>
+            <div id="errorText" class="error-message">Sai thông tin đăng nhập!</div>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const phone = document.getElementById('phoneNumber').value;
+            const pass = document.getElementById('password').value;
+            const errorText = document.getElementById('errorText');
+            const overlay = document.getElementById('loadingOverlay');
+
+            errorText.style.display = 'none';
+            overlay.style.display = 'flex';
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phoneNumber: phone, password: pass })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    if (data.role === 'ROLE_TEACHER') {
+                        // Store token and redirect
+                        localStorage.setItem('teacher_jwt', data.token);
+                        localStorage.setItem('teacher_name', data.fullName);
+                        window.location.href = '/web/teacher/dashboard';
+                    } else {
+                        errorText.innerText = 'Tài khoản không có quyền Giảng Viên Web.';
+                        errorText.style.display = 'block';
+                    }
+                } else {
+                    errorText.innerText = 'Số điện thoại hoặc mật khẩu không đúng.';
+                    errorText.style.display = 'block';
+                }
+            } catch (err) {
+                errorText.innerText = 'Lỗi kết nối máy chủ.';
+                errorText.style.display = 'block';
+            } finally {
+                overlay.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

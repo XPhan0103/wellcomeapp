@@ -6,6 +6,8 @@ public class DashboardResponse {
     private StudentInfo student;
     private List<ScheduleDTO> todaySchedules;
     private List<AssignmentDTO> pendingAssignments;
+    private double overallGpa;
+    private List<SubjectSummaryDTO> subjects;
 
     public DashboardResponse() {}
 
@@ -15,6 +17,10 @@ public class DashboardResponse {
     public void setTodaySchedules(List<ScheduleDTO> todaySchedules) { this.todaySchedules = todaySchedules; }
     public List<AssignmentDTO> getPendingAssignments() { return pendingAssignments; }
     public void setPendingAssignments(List<AssignmentDTO> pendingAssignments) { this.pendingAssignments = pendingAssignments; }
+    public double getOverallGpa() { return overallGpa; }
+    public void setOverallGpa(double overallGpa) { this.overallGpa = overallGpa; }
+    public List<SubjectSummaryDTO> getSubjects() { return subjects; }
+    public void setSubjects(List<SubjectSummaryDTO> subjects) { this.subjects = subjects; }
 
     public static class StudentInfo {
         private Long id;
@@ -55,15 +61,59 @@ public class DashboardResponse {
         private String title;
         private String dueDate;
         private String description;
+        private String subject;
+        private Long subjectId;
+        private boolean completed;
 
-        public AssignmentDTO(String title, String dueDate, String description) {
+        public AssignmentDTO(String title, String dueDate, String description, String subject, Long subjectId, boolean completed) {
             this.title = title;
             this.dueDate = dueDate;
             this.description = description;
+            this.subject = subject;
+            this.subjectId = subjectId;
+            this.completed = completed;
         }
 
         public String getTitle() { return title; }
         public String getDueDate() { return dueDate; }
         public String getDescription() { return description; }
+        public String getSubject() { return subject; }
+        public Long getSubjectId() { return subjectId; }
+        public boolean isCompleted() { return completed; }
+    }
+
+    public static class SubjectSummaryDTO {
+        private String subject;
+        private double gpa;
+        private List<GradeDetailDTO> grades;
+
+        public SubjectSummaryDTO(String subject, double gpa, List<GradeDetailDTO> grades) {
+            this.subject = subject;
+            this.gpa = gpa;
+            this.grades = grades;
+        }
+
+        public String getSubject() { return subject; }
+        public double getGpa() { return gpa; }
+        public List<GradeDetailDTO> getGrades() { return grades; }
+    }
+
+    public static class GradeDetailDTO {
+        private String type;
+        private double score;
+        private String semester;
+        private int weight;
+
+        public GradeDetailDTO(String type, double score, String semester, int weight) {
+            this.type = type;
+            this.score = score;
+            this.semester = semester;
+            this.weight = weight;
+        }
+
+        public String getType() { return type; }
+        public double getScore() { return score; }
+        public String getSemester() { return semester; }
+        public int getWeight() { return weight; }
     }
 }

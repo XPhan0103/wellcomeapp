@@ -26,6 +26,9 @@ public class Assignment {
     @Column(name = "due_date")
     private LocalDateTime dueDate;
 
+    @Column(nullable = false)
+    private boolean completed = false;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getTitle() { return title; }
@@ -38,4 +41,6 @@ public class Assignment {
     public void setClassName(String className) { this.className = className; }
     public LocalDateTime getDueDate() { return dueDate; }
     public void setDueDate(LocalDateTime dueDate) { this.dueDate = dueDate; }
+    public boolean isCompleted() { return completed; }
+    public void setCompleted(boolean completed) { this.completed = completed; }
 }

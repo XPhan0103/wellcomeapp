@@ -7,5 +7,6 @@ import java.util.List;
 
 @Repository
 public interface GradeRepository extends JpaRepository<Grade, Long> {
-    List<Grade> findByStudentIdOrderByCreatedAtDesc(Long studentId);
+    @org.springframework.data.jpa.repository.Query("SELECT g FROM Grade g JOIN FETCH g.subject WHERE g.student.id = :studentId ORDER BY g.createdAt DESC")
+    List<Grade> findByStudentIdWithSubject(Long studentId);
 }

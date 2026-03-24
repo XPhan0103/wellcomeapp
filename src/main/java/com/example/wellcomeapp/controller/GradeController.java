@@ -18,7 +18,7 @@ public class GradeController {
 
     @GetMapping
     public ResponseEntity<List<Grade>> getStudentGrades(@PathVariable Long studentId) {
-        List<Grade> grades = gradeRepository.findByStudentIdOrderByCreatedAtDesc(studentId);
+        List<Grade> grades = gradeRepository.findByStudentIdWithSubject(studentId);
         return ResponseEntity.ok(grades);
     }
 }

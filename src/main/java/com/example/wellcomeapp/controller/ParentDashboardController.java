@@ -30,6 +30,9 @@ public class ParentDashboardController {
     @Autowired
     private AssignmentRepository assignmentRepository;
 
+    @Autowired
+    private com.example.wellcomeapp.repository.GradeRepository gradeRepository;
+
     @GetMapping("/students/{studentId}/dashboard")
     public ResponseEntity<?> getStudentDashboard(@PathVariable Long studentId) {
         Optional<User> studentOpt = userRepository.findById(studentId);
@@ -61,16 +64,52 @@ public class ParentDashboardController {
         response.setTodaySchedules(scheduleDTOs);
 
         // 3. Pending Assignments
-        List<Assignment> assignments = assignmentRepository.findByClassNameOrderByDueDateAsc(student.getClassName());
+        List<Assignment> assignments = assignmentRepository.findByClassNameWithSubject(student.getClassName());
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm - dd/MM");
         List<DashboardResponse.AssignmentDTO> assignmentDTOs = assignments.stream()
                 .map(a -> new DashboardResponse.AssignmentDTO(
                         a.getTitle(),
                         a.getDueDate() != null ? a.getDueDate().format(formatter) : "",
-                        a.getDescription()
+                        a.getDescription(),
+                        a.getSubject() != null ? a.getSubject().getName() : "",
+                        a.getSubject() != null ? a.getSubject().getId() : null,
+                        a.isCompleted()
                 ))
                 .collect(Collectors.toList());
         response.setPendingAssignments(assignmentDTOs);
+
+        // 4. Grouped Grades
+        List<com.example.wellcomeapp.model.Grade> allGrades = gradeRepository.findByStudentIdWithSubject(studentId);
+        System.out.println("DEBUG: Found " + allGrades.size() + " grades for studentId: " + studentId);
+        
+        // Group grades by subject
+        java.util.Map<String, List<com.example.wellcomeapp.model.Grade>> bySubject = allGrades.stream()
+                .collect(Collectors.groupingBy(g -> g.getSubject().getName()));
+
+        // Build subject summary
+        List<DashboardResponse.SubjectSummaryDTO> subjectSummaries = bySubject.entrySet().stream().map(entry -> {
+            String subjectName = entry.getKey();
+            List<com.example.wellcomeapp.model.Grade> grades = entry.getValue();
+
+            double weightedSum = grades.stream().mapToDouble(g -> g.getScore() * g.getWeight()).sum();
+            double totalWeight = grades.stream().mapToInt(com.example.wellcomeapp.model.Grade::getWeight).sum();
+            double gpa = totalWeight > 0 ? Math.round((weightedSum / totalWeight) * 10.0) / 10.0 : 0.0;
+
+            List<DashboardResponse.GradeDetailDTO> details = grades.stream().map(g -> 
+                new DashboardResponse.GradeDetailDTO(g.getType(), g.getScore(), g.getSemester(), g.getWeight())
+            ).collect(Collectors.toList());
+
+            return new DashboardResponse.SubjectSummaryDTO(subjectName, gpa, details);
+        }).collect(Collectors.toList());
+
+        double overallGpa = 0;
+        if (!subjectSummaries.isEmpty()) {
+            overallGpa = subjectSummaries.stream().mapToDouble(DashboardResponse.SubjectSummaryDTO::getGpa).average().orElse(0);
+            overallGpa = Math.round(overallGpa * 10.0) / 10.0;
+        }
+
+        response.setSubjects(subjectSummaries);
+        response.setOverallGpa(overallGpa);
 
         return ResponseEntity.ok(response);
     }

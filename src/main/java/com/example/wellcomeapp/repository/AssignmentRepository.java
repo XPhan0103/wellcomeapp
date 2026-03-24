@@ -7,5 +7,6 @@ import java.util.List;
 
 @Repository
 public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
-    List<Assignment> findByClassNameOrderByDueDateAsc(String className);
+    @org.springframework.data.jpa.repository.Query("SELECT a FROM Assignment a JOIN FETCH a.subject WHERE a.className = :className ORDER BY a.dueDate ASC")
+    List<Assignment> findByClassNameWithSubject(@org.springframework.data.repository.query.Param("className") String className);
 }
